@@ -1,6 +1,5 @@
 import Book from '../models/bookSchema.js'
-
-
+import {getSimilarBooks} from '../services/gemini.js'
 
 export const createbook=async (req,res) => {
     try{
@@ -84,7 +83,7 @@ export const topreviedbooks=async (req,res) => {
         const topreview= await Book.aggregate(
         {
            $lookup:{
-            from:"Review",
+            from:"review",
             localField:"_id",
             foreignField:"bookid",
             as :"Review Details"
@@ -107,3 +106,16 @@ export const topreviedbooks=async (req,res) => {
     }
     
 }
+
+
+export const getSimilarBooksController = async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ error: 'Book not found' });
+
+    const suggestions = await getSimilarBooks(book);
+    res.json(suggestions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
